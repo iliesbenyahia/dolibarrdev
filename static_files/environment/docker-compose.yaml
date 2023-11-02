@@ -1,0 +1,66 @@
+services: 
+    ${USER}-apache:
+        build:
+           context: ./apache/.
+           dockerfile: apache.Dockerfile
+        restart: always
+        volumes:
+        - type: bind
+          source: ../sources/.
+          target: /var/www/html
+        - type: bind
+          source: ./apache/000-default.conf
+          target: /etc/apache2/sites-available/000-default.conf
+        - type: bind
+          source: ../sources/custom/.
+          target: /var/www/html/custom
+        expose:
+        - 80
+        labels:
+         - "traefik.http.routers.${USER}-httpd.rule=Host(`${USER}.iliesbenyahia.fr`)"
+    ${USER}-php:
+        build:
+           context: ./php/.
+           dockerfile: php.Dockerfile
+        restart: always
+        expose:
+        - 9000
+        volumes:
+        - type: bind
+          source: ../sources/.
+          target: /var/www/html
+    ${USER}-db:
+        image: mariadb:10.3
+        restart: always
+        container_name: ${USER}-db
+        environment:
+            MARIADB_ROOT_PASSWORD: "root"
+        expose:
+        - 3306
+        volumes:
+        - type: bind
+          source: ./database/.
+          target: /var/lib/mysql
+     
+    ${USER}-phpmyadmin: 
+        image: phpmyadmin
+        restart: always
+        container_name: ${USER}-phpmyadmin
+        environment:
+            PMA_HOST: ${USER}-db
+            PMA_USER: root
+            PMA_PASSWORD: root
+        expose:
+        - 80
+        volumes:
+         - type: bind
+           source: ./phpmyadmin/config.user.inc.php
+           target: /etc/phpmyadmin/config.user.inc.php
+        labels:
+        # - "traefik.http.middlewares.${USER}-phpmyadmin-replace.replacepath.path= `/"
+          - "traefik.http.routers.${USER}-phpmyadmin.rule=Host(`phpmyadmin.${USER}.iliesbenyahia.fr`)"
+         #- "traefik.http.routers.${USER}-phpmyadmin.middlewares=${USER}-phpmyadmin-replace"  
+networks:
+    default:
+        name: "traefik"
+        external: true
