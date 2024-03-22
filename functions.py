@@ -4,6 +4,7 @@ import shutil
 import requests
 import tarfile
 from services.apache import Apache
+from services.php import Php
 
 client = docker.from_env() 
 
@@ -138,58 +139,21 @@ def setupUserApache(username):
     apache.build()
     apache.run()
     
+def searchPhpImageTest():
+    result = []
+    search_results = client.images.search('7.4-fpm')
+    for image in search_results:
+        if image['is_official']:
+            result.append(image)
+    return result 
 
-#todo : enlever les conteneur intermédiaire
-def setUserPhp(username, version="8.1", **kwargs):
-    imageName = username + "-php"
-    containerName = username + "-php"
-    networkName = "traefik"
+async def searchPhpImageTest2(username):
+    php = Php(client, username)
+    await php.set_version("8.1")
+    await php.setup_files()
+    await php.build()
+    await php.run()
+     
 
-    options = {
-        'rebuild' : True
-    }
 
-    options.update(**kwargs)
-
-    os.makedirs(os.path.os.getcwd() + "/Users/" + username + "/sources/custom", 511, True)
-    target_dir = os.path.os.getcwd() + "/Users/" + username + "/environment/php" 
-    if os.path.exists(target_dir):
-        shutil.rmtree(target_dir)
-    shutil.copytree(os.path.os.getcwd() + "/static_files/environment/php", target_dir)
-    replaceInFiles(target_dir,'${PHP_VERSION}',version)
-    if(client.images.list(imageName)):
-        client.images.remove(image=imageName)
-    client.images.build(path=target_dir,tag=imageName,
-                          rm=True)
-    if(not client.containers.list(False, None,{"name":containerName})):
-        container = client.containers.run(imageName, 
-                          detach=True, 
-                          name=containerName, 
-                          network="traefik",
-                          volumes = {os.path.os.getcwd() + "/Users/" + username + "/sources": {'bind': '/var/www/html', 'mode': 'rw'}}
-                          #labels = {
-                             # "traefik.http.routers."+username+"-apache.rule" : "Host(`"+username+".docker.localhost`)",
-                            # "traefik.http.services."+username+"-apache.loadbalancer.server.port" : "80"
-                            #  }
-    )
         
-
-def setUserMariaDB(username, version ='latest'):
-    imageName = "mariadb-"+version
-    containerName = username + "-db"
-    networkName = "traefik"
-
-    os.makedirs(os.path.os.getcwd() + "/Users/" + username + "/database", 511, True)
-
-    if(not client.images.list(name=imageName)):
-        client.images.pull(imageName)
-    if(not client.containers.list(False, None,{"name":containerName})):
-        container = client.containers.run(imageName, 
-                          detach=True,
-                          name=containerName, 
-                          network=networkName,
-                          #volumes = {os.path.os.getcwd() + "/Users/" + username + "/sources": {'bind': '/var/www/html', 'mode': 'rw'}},
-                          labels = {
-                              "traefik.http.services."+username+"-db.loadbalancer.server.port" : "3306"
-                              })
-    return 1
