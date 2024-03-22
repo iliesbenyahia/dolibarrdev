@@ -8,7 +8,7 @@ Cet utilitaire simplifie la mise en place d'un serveur de développement pour Do
 ## Qu'est-ce que Dolibarr ?
 Dolibarr est un suite logicielle ERP et CRM open-source conçue pour les petites et moyennes entreprises (PME), les travailleurs indépendants et les associations. Il propose une gamme étendue de fonctionnalités incluant la comptabilité, la facturation, la gestion des stocks, le CRM, la gestion de projets, et plus encore. Dolibarr est hautement personnalisable, permettant aux utilisateurs d'étendre sa fonctionnalité à travers des modules et des développements sur mesure.
 
-## Utilié ?
+## Utilité ?
 La configuration d'un environnement serveur de développement pour Dolibarr peut être fastidieuse et complexe. Cet utilitaire simplifie ce processus en automatisant la configuration d'un environnement de développement local adapté spécifiquement au développement Dolibarr.
 
 ## Statut du Projet
